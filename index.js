@@ -28,22 +28,41 @@ function getContent(url) {
 }
 
 class NekoClient {
-  constructor() {
-    let self = this;
-    let baseURL = 'https://nekos.life/api/v2';
-    Object.keys(endpoints.sfw).forEach(async (endpoint) => {
-      self[`getSFW${endpoint}`] = async function (queryParams = '') {
-        let url = new URL(`${baseURL}${endpoints.sfw[endpoint]}`);
-        queryParams !== '' ? url.search = new URLSearchParams(queryParams) : '';
-        return await getContent(url.toString());
-        };
-    });
+  /**
+   * @param {String} [contentType] The type of content you want to query for
+   */
+  constructor(contentType) {
+    this.baseURL = 'https://nekos.life/api/v2';
+
+    if (contentType === undefined) {
+      this.assignNSFWFunctions();
+      this.assignSFWFunctions();
+    } else if (contentType.toLocaleLowerCase() === 'nsfw') {
+      this.assignNSFWFunctions();
+    } else if (contentType.toLocaleLowerCase() === 'sfw') {
+      this.assignSFWFunctions();
+    }
+  }
+
+  assignNSFWFunctions () {
+    let self = this
     Object.keys(endpoints.nsfw).forEach( async (endpoint) => {
       self[`getNSFW${endpoint}`] = async function (queryParams = '') {
-        let url = new URL(`${baseURL}${endpoints.nsfw[endpoint]}`);
+        let url = new URL(`${self.baseURL}${endpoints.nsfw[endpoint]}`);
         queryParams !== '' ? url.search = new URLSearchParams(queryParams) : '';
         return await getContent(url.toString());
       };
+    });
+  }
+
+  assignSFWFunctions () {
+    let self = this
+    Object.keys(endpoints.sfw).forEach(async (endpoint) => {
+      self[`getSFW${endpoint}`] = async function (queryParams = '') {
+        let url = new URL(`${self.baseURL}${endpoints.sfw[endpoint]}`);
+        queryParams !== '' ? url.search = new URLSearchParams(queryParams) : '';
+        return await getContent(url.toString());
+        };
     });
   }
 }
